@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Basic Meta -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Simple Checkers game with forced captures, flying kings, multiple jumps, AI, and undo functionality.">
+  <meta name="keywords" content="Checkers, Game, Interactive, Fun, JavaScript, Responsive, UI, Board Game, Flying Kings, Multiple Jumps">
+  <meta name="author" content="Nicanor Korir">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://checkers.nicanor.me">
+  <!-- Open Graph -->
+  <meta property="og:title" content="Checkers Game">
+  <meta property="og:description" content="Play a feature-rich Checkers game with forced captures, flying kings, multiple jumps, AI, and undo functionality.">
+  <meta property="og:image" content="./checkers.jpg">
+  <meta property="og:url" content="https://checkers.nicanor.me">
+  <meta property="og:image:alt" content="Checkers image">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Checkers Game by Nicanor Korir">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Checkers Game">
+  <meta name="twitter:description" content="Play a feature-rich Checkers game with forced captures, flying kings, multiple jumps, Play with Computer, and undo functionality.">
+  <meta name="twitter:image" content="./checkers.jpg">
+  <meta name="twitter:image:alt" content="Checkers image">
+
+  <title>Checkers Game</title>
+
+  <!-- Performance: Preload critical CSS -->
+  <link rel="preload" href="#internal-css" as="style">
+  <style id="internal-css">
+    /* Global Reset */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    /* Center all content on the screen using Flexbox */
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(to bottom right, #F5F7FA, #C3CFE2);
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    #container-1 {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: url('./hero-bg.jpeg') no-repeat center center;
+      background-size: cover;
+      opacity: 0.85;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    /* Main container for game content */
+    #container {
+      width: 100%;
+      max-width: 800px;
+      position: relative;
+      background-color: white;
+      border-radius: 20px;
+      padding: 3rem;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .game-board {
+      width: fit-content;
+      height: fit-content;
+      display: grid;
+      grid-template-columns: repeat(8, 50px);
+      grid-template-rows: repeat(8, 50px);
+      border: 2px solid #333;
+      margin: 20px auto;
+      background-color: #333;
+    }
+    .square {
+      width: 50px;
+      height: 50px;
+      position: relative;
+    }
+    .green {
+      background-color: #76b947;
+    }
+    .white {
+      background-color: #F9F9F9;
+    }
+    .piece {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin: auto;
+      margin-top: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .red-piece {
+      background: red;
+    }
+    .white-piece {
+      background: white;
+      border: 1px solid #ccc;
+    }
+    .king:before {
+      content: "K";
+      font-weight: bold;
+      font-size: 16px;
+      color: black;
+    }
+    /* More visible highlighting */
+    .highlight {
+      box-shadow: inset 0 0 0 4px rgba(255, 235, 59, 0.8);
+    }
+    /* Scoreboard styles */
+    .scoreboard {
+      margin: 20px auto;
+      background: #FFF;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 10px;
+      max-width: 400px;
+    }
+    .scoreboard span {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    /* Button styles */
+    #gameMode, #resetBtn, #undoBtn {
+      margin: 10px 5px;
+      padding: 10px 15px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    /* Status Indicators */
+    #turnIndicator {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    #winnerMessage {
+      margin-top: 10px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #d9534f;
+      display: none;
+    }
+    /* Responsive adjustments */
+    @media (max-width: 500px) {
+      .game-board {
+        grid-template-columns: repeat(8, 40px);
+        grid-template-rows: repeat(8, 40px);
+      }
+      .square {
+        width: 40px;
+        height: 40px;
+      }
+      .piece {
+        width: 30px;
+        height: 30px;
+        margin-top: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="container-1">
+    <div id="container">
+    <h2>Simple Checkers Game</h2>
+
+    <div class="scoreboard">
+      <p>Player 1 (Red): <span id="player1Score">0</span></p>
+      <p>Player 2/Computer (White): <span id="player2Score">0</span></p>
+      <p>Total Wins - Player 1: <span id="player1Wins">0</span> | Player 2/Computer: <span id="player2Wins">0</span></p>
+    </div>
+
+    <button id="gameMode">Switch to Player vs. Computer</button>
+    <button id="resetBtn">Reset Game</button>
+    <button id="undoBtn" style="display:none;">Undo Move</button>
+
+    <div class="game-board" id="board"></div>
+
+    <!-- Turn & Winner indicators -->
+    <p id="turnIndicator"></p>
+    <p id="winnerMessage"></p>
+    </div>
+  </div>
+
+  <script>
+    /***********************************************************
+     * Global DOM references
+     ***********************************************************/
+    const board = document.getElementById('board');
+    const player1ScoreEl = document.getElementById('player1Score');
+    const player2ScoreEl = document.getElementById('player2Score');
+    const player1WinsEl = document.getElementById('player1Wins');
+    const player2WinsEl = document.getElementById('player2Wins');
+    const gameModeBtn = document.getElementById('gameMode');
+    const resetBtn = document.getElementById('resetBtn');
+    const undoBtn = document.getElementById('undoBtn');
+    const turnIndicator = document.getElementById('turnIndicator');
+    const winnerMessage = document.getElementById('winnerMessage');
+
+    /***********************************************************
+     * Game state variables
+     ***********************************************************/
+    let isPlayerVsComputer = false;
+    let currentPlayer = 'red'; // 'red' goes first
+    let player1Score = 0;
+    let player2Score = 0;
+    let player1Wins = 0;
+    let player2Wins = 0;
+    
+    // Board state: each cell can be 'red', 'white', 'redKing', 'whiteKing', or null.
+    let boardState = new Array(64).fill(null);
+
+    // For undo: history snapshots
+    let gameHistory = [];
+
+    // Selected piece and its valid moves
+    let selectedPieceIndex = null;
+    let validMoves = [];
+
+    /***********************************************************
+     * Helper: Check valid board square (only green squares are playable)
+     ***********************************************************/
+    function isValidSquare(index) {
+      const row = Math.floor(index / 8);
+      const col = index % 8;
+      return ((row + col) % 2 === 1);
+    }
+
+    /***********************************************************
+     * Undo Button Visibility
+     ***********************************************************/
+    function updateUndoButtonVisibility() {
+      // Only show if there is at least one move made and game is not over.
+      if (gameHistory.length > 1 && winnerMessage.style.display === 'none') {
+        undoBtn.style.display = 'inline-block';
+      } else {
+        undoBtn.style.display = 'none';
+      }
+    }
+
+    /***********************************************************
+     * Initialization
+     ***********************************************************/
+    function init() {
+      initBoardState();
+      renderBoard();
+      updateTurnIndicator();
+      updateScoreDisplay();
+      updateUndoButtonVisibility();
+
+      // Event Listeners
+      board.addEventListener('click', handleBoardClick);
+      gameModeBtn.addEventListener('click', switchGameMode);
+      resetBtn.addEventListener('click', resetGame);
+      undoBtn.addEventListener('click', undoMove);
+
+      saveGameState();
+    }
+
+    // Set up the initial board layout
+    function initBoardState() {
+      boardState.fill(null);
+      for (let i = 0; i < 64; i++) {
+        const row = Math.floor(i / 8);
+        const col = i % 8;
+        if ((row + col) % 2 === 1) {
+          if (i < 24) {
+            boardState[i] = 'white';
+          }
+          if (i >= 40) {
+            boardState[i] = 'red';
+          }
+        }
+      }
+    }
+
+    /***********************************************************
+     * Rendering & UI Updates
+     ***********************************************************/
+    function renderBoard() {
+      board.innerHTML = '';
+      for (let i = 0; i < 64; i++) {
+        const square = document.createElement('div');
+        square.classList.add('square');
+
+        const row = Math.floor(i / 8);
+        const col = i % 8;
+        // Color the square
+        if ((row + col) % 2 === 1) {
+          square.classList.add('green');
+        } else {
+          square.classList.add('white');
+        }
+
+        // Create and append the piece if one exists here
+        const pieceColor = boardState[i];
+        if (pieceColor) {
+          const piece = document.createElement('div');
+          piece.classList.add('piece');
+          if (pieceColor.startsWith('red')) {
+            piece.classList.add('red-piece');
+          } else {
+            piece.classList.add('white-piece');
+          }
+          if (pieceColor === 'redKing' || pieceColor === 'whiteKing') {
+            piece.classList.add('king');
+          }
+          piece.dataset.index = i;
+          square.appendChild(piece);
+        }
+        square.dataset.index = i;
+        board.appendChild(square);
+      }
+    }
+
+    function updateTurnIndicator() {
+      turnIndicator.textContent = currentPlayer === 'red'
+        ? "It's Red's turn"
+        : "It's White's turn";
+    }
+
+    function updateScoreDisplay() {
+      player1ScoreEl.textContent = player1Score;
+      player2ScoreEl.textContent = player2Score;
+    }
+
+    function showWinnerMessage(color) {
+      winnerMessage.style.display = 'block';
+      winnerMessage.textContent = color === 'white'
+        ? 'White wins the game!'
+        : 'Red wins the game!';
+      updateUndoButtonVisibility();
+    }
+
+    function clearWinnerMessage() {
+      winnerMessage.style.display = 'none';
+      winnerMessage.textContent = '';
+    }
+
+    /***********************************************************
+     * Game Mode & Reset
+     ***********************************************************/
+    function switchGameMode() {
+      isPlayerVsComputer = !isPlayerVsComputer;
+      gameModeBtn.textContent = isPlayerVsComputer
+        ? 'Switch to Player vs. Player'
+        : 'Switch to Player vs. Computer';
+      resetGame();
+    }
+
+    function resetGame() {
+      clearWinnerMessage();
+      currentPlayer = 'red';
+      player1Score = 0;
+      player2Score = 0;
+      updateScoreDisplay();
+      initBoardState();
+      renderBoard();
+      updateTurnIndicator();
+      gameHistory = [];
+      saveGameState();
+      updateUndoButtonVisibility();
+    }
+
+    /***********************************************************
+     * Undo Move
+     ***********************************************************/
+    function saveGameState() {
+      const snapshot = {
+        boardState: [...boardState],
+        currentPlayer,
+        player1Score,
+        player2Score
+      };
+      gameHistory.push(snapshot);
+      updateUndoButtonVisibility();
+    }
+
+    function undoMove() {
+      if (gameHistory.length > 1) {
+        gameHistory.pop();
+        const prevState = gameHistory[gameHistory.length - 1];
+        boardState = [...prevState.boardState];
+        currentPlayer = prevState.currentPlayer;
+        player1Score = prevState.player1Score;
+        player2Score = prevState.player2Score;
+        renderBoard();
+        updateTurnIndicator();
+        updateScoreDisplay();
+        clearHighlights();
+        selectedPieceIndex = null;
+        validMoves = [];
+      }
+      updateUndoButtonVisibility();
+    }
+
+    /***********************************************************
+     * Game Over Check
+     ***********************************************************/
+    function checkGameOver() {
+      const redCount = boardState.filter(cell => cell === 'red' || cell === 'redKing').length;
+      const whiteCount = boardState.filter(cell => cell === 'white' || cell === 'whiteKing').length;
+      if (redCount === 0) {
+        player2Wins++;
+        player2WinsEl.textContent = player2Wins;
+        showWinnerMessage('white');
+        return true;
+      } else if (whiteCount === 0) {
+        player1Wins++;
+        player1WinsEl.textContent = player1Wins;
+        showWinnerMessage('red');
+        return true;
+      }
+      return false;
+    }
+
+    /***********************************************************
+     * Movement & Capture Logic
+     ***********************************************************/
+    // Return the base color even for kings.
+    function getBaseColor(piece) {
+      if (piece === 'redKing') return 'red';
+      if (piece === 'whiteKing') return 'white';
+      return piece;
+    }
+
+    function isKing(piece) {
+      return piece === 'redKing' || piece === 'whiteKing';
+    }
+
+    function promoteIfNeeded(index, piece) {
+      const row = Math.floor(index / 8);
+      const base = getBaseColor(piece);
+      if (base === 'red' && row === 0 && !isKing(piece)) {
+        boardState[index] = 'redKing';
+      } else if (base === 'white' && row === 7 && !isKing(piece)) {
+        boardState[index] = 'whiteKing';
+      }
+    }
+
+    // Move a piece from "from" to "to", removing captured pieces as needed.
+    function movePiece(from, to) {
+      const piece = boardState[from];
+      boardState[from] = null;
+      if (Math.abs(to - from) > 9) {
+        const capturedIndex = findCapturedIndex(from, to);
+        if (capturedIndex !== null) {
+          boardState[capturedIndex] = null;
+          if (getBaseColor(piece) === 'red') {
+            player1Score++;
+          } else {
+            player2Score++;
+          }
+          updateScoreDisplay();
+        }
+      }
+      boardState[to] = piece;
+      promoteIfNeeded(to, piece);
+    }
+
+    // For flying kings, scan along the diagonal to find which piece was jumped over.
+    function findCapturedIndex(from, to) {
+      const piece = boardState[from];
+      const base = getBaseColor(piece);
+      const fromRow = Math.floor(from / 8);
+      const fromCol = from % 8;
+      const toRow = Math.floor(to / 8);
+      const toCol = to % 8;
+      const rowStep = toRow > fromRow ? 1 : -1;
+      const colStep = toCol > fromCol ? 1 : -1;
+      let r = fromRow + rowStep;
+      let c = fromCol + colStep;
+      while (r !== toRow && c !== toCol) {
+        const idx = r * 8 + c;
+        if (boardState[idx] && getBaseColor(boardState[idx]) !== base) {
+          return idx;
+        }
+        r += rowStep;
+        c += colStep;
+      }
+      return null;
+    }
+
+    /***********************************************************
+     * Valid Moves Calculation (Forced Captures & Normal Moves)
+     ***********************************************************/
+    function getAllMovesForPiece(index, piece) {
+      const capturingMoves = getAllCapturesForPiece(index, piece);
+      if (capturingMoves.length > 0) {
+        return { captures: capturingMoves, moves: [] };
+      } else {
+        const normalMoves = getAllNormalMovesForPiece(index, piece);
+        return { captures: [], moves: normalMoves };
+      }
+    }
+
+    function getAllNormalMovesForPiece(index, piece) {
+      const base = getBaseColor(piece);
+      const result = [];
+      if (!isKing(piece)) {
+        const direction = base === 'red' ? -1 : 1;
+        const row = Math.floor(index / 8);
+        const col = index % 8;
+        const leftDiag = (row + direction) * 8 + (col - 1);
+        const rightDiag = (row + direction) * 8 + (col + 1);
+        [leftDiag, rightDiag].forEach(diag => {
+          if (isOnBoard(diag) && isValidSquare(diag) && boardState[diag] === null && isSingleStepDiagonal(index, diag)) {
+            result.push(diag);
+          }
+        });
+      } else {
+        const directions = [
+          { r: 1, c: 1 },
+          { r: 1, c: -1 },
+          { r: -1, c: 1 },
+          { r: -1, c: -1 }
+        ];
+        const fromRow = Math.floor(index / 8);
+        const fromCol = index % 8;
+        directions.forEach(dir => {
+          let r = fromRow + dir.r;
+          let c = fromCol + dir.c;
+          while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+            const idx = r * 8 + c;
+            if (!isValidSquare(idx)) break;
+            if (boardState[idx] === null) {
+              result.push(idx);
+            } else {
+              break;
+            }
+            r += dir.r;
+            c += dir.c;
+          }
+        });
+      }
+      return result;
+    }
+
+    function getAllCapturesForPiece(index, piece) {
+      const sequences = [];
+      function dfsCapture(path) {
+        const currentPos = path[path.length - 1];
+        const nextCaptures = getDirectCaptures(currentPos, piece, path);
+        if (nextCaptures.length === 0) {
+          sequences.push(path);
+        } else {
+          nextCaptures.forEach(nextPos => {
+            const newPath = [...path, nextPos];
+            dfsCapture(newPath);
+          });
+        }
+      }
+      dfsCapture([index]);
+      const validSeq = sequences.filter(seq => seq.length > 1);
+      const lastPositions = [...new Set(validSeq.map(seq => seq[seq.length - 1]))];
+      return lastPositions;
+    }
+
+    function getDirectCaptures(currentPos, piece, visitedPath) {
+      const result = [];
+      const base = getBaseColor(piece);
+      if (!isKing(piece)) {
+        const direction = base === 'red' ? -1 : 1;
+        const row = Math.floor(currentPos / 8);
+        const col = currentPos % 8;
+        const diagonals = [
+          (row + direction) * 8 + (col - 1),
+          (row + direction) * 8 + (col + 1)
+        ];
+        diagonals.forEach(diag => {
+          if (isOnBoard(diag) && isValidSquare(diag) && boardState[diag] && getBaseColor(boardState[diag]) !== base) {
+            const landingRow = Math.floor(diag / 8) + direction;
+            const landingCol = (diag % 8) + (diag % 8 > col ? 1 : -1);
+            const jumpIdx = landingRow * 8 + landingCol;
+            if (isOnBoard(jumpIdx) && isValidSquare(jumpIdx) && boardState[jumpIdx] === null) {
+              if (!visitedPath.includes(jumpIdx)) {
+                result.push(jumpIdx);
+              }
+            }
+          }
+        });
+      } else {
+        const directions = [
+          { r: 1, c: 1 },
+          { r: 1, c: -1 },
+          { r: -1, c: 1 },
+          { r: -1, c: -1 }
+        ];
+        const fromRow = Math.floor(currentPos / 8);
+        const fromCol = currentPos % 8;
+        directions.forEach(dir => {
+          let r = fromRow + dir.r;
+          let c = fromCol + dir.c;
+          let encountered = false;
+          while (r >= 0 && r < 8 && c >= 0 && c < 8) {
+            const idx = r * 8 + c;
+            if (!isValidSquare(idx)) break;
+            if (!encountered) {
+              if (boardState[idx] && getBaseColor(boardState[idx]) !== base) {
+                encountered = true;
+              } else if (boardState[idx]) {
+                break;
+              }
+            } else {
+              if (boardState[idx] === null) {
+                if (!visitedPath.includes(idx)) {
+                  result.push(idx);
+                }
+              } else {
+                break;
+              }
+            }
+            r += dir.r;
+            c += dir.c;
+          }
+        });
+      }
+      return result;
+    }
+
+    function isOnBoard(idx) {
+      return idx >= 0 && idx < 64;
+    }
+
+    function isSingleStepDiagonal(from, to) {
+      const r1 = Math.floor(from / 8);
+      const c1 = from % 8;
+      const r2 = Math.floor(to / 8);
+      const c2 = to % 8;
+      return Math.abs(r1 - r2) === 1 && Math.abs(c1 - c2) === 1;
+    }
+
+    /***********************************************************
+     * Handling Player & AI Turns
+     ***********************************************************/
+    function handleBoardClick(e) {
+      const target = e.target;
+      const clickedIndex = parseInt(target.dataset.index, 10);
+      if (winnerMessage.style.display !== 'none') return;
+      if (target.classList.contains('piece')) {
+        const piece = boardState[clickedIndex];
+        if (getBaseColor(piece) === currentPlayer) {
+          recalcValidMovesForPiece(clickedIndex, piece);
+        }
+      } else {
+        if (selectedPieceIndex !== null && validMoves.includes(clickedIndex)) {
+          movePiece(selectedPieceIndex, clickedIndex);
+          renderBoard();
+          const piece = boardState[clickedIndex];
+          const capturingMoves = getAllCapturesForPiece(clickedIndex, piece);
+          if (capturingMoves.length > 0 && Math.abs(clickedIndex - selectedPieceIndex) > 9) {
+            selectedPieceIndex = clickedIndex;
+            validMoves = capturingMoves;
+            clearHighlights();
+            highlightSquares(validMoves);
+            saveGameState();
+            return;
+          }
+          if (!checkGameOver()) {
+            switchPlayer();
+          }
+          saveGameState();
+        }
+      }
+    }
+
+    function switchPlayer() {
+      clearHighlights();
+      selectedPieceIndex = null;
+      validMoves = [];
+      currentPlayer = currentPlayer === 'red' ? 'white' : 'red';
+      updateTurnIndicator();
+      if (isPlayerVsComputer && currentPlayer === 'white') {
+        setTimeout(() => { aiMove(); }, 400);
+      }
+    }
+
+    function didJustCapture(from, to) {
+      return Math.abs(to - from) > 9;
+    }
+
+    function recalcValidMovesForPiece(index, piece) {
+      clearHighlights();
+      selectedPieceIndex = index;
+      const { forcedCaptures, otherMoves } = getAllPossibleMovesForPlayer(currentPlayer);
+      if (forcedCaptures.length > 0) {
+        const capturesForThisPiece = getAllCapturesForPiece(index, piece);
+        validMoves = capturesForThisPiece;
+      } else {
+        validMoves = getAllNormalMovesForPiece(index, piece);
+      }
+      highlightSquares(validMoves);
+    }
+
+    function getAllPossibleMovesForPlayer(playerColor) {
+      let forcedCaptures = [];
+      let otherMoves = [];
+      for (let i = 0; i < 64; i++) {
+        const piece = boardState[i];
+        if (piece && getBaseColor(piece) === playerColor) {
+          const { captures, moves } = getAllMovesForPiece(i, piece);
+          if (captures.length > 0) {
+            forcedCaptures = forcedCaptures.concat(captures);
+          } else {
+            otherMoves = otherMoves.concat(moves);
+          }
+        }
+      }
+      return { forcedCaptures, otherMoves };
+    }
+
+    /***********************************************************
+     * AI Logic (Prioritizes Forced Captures)
+     ***********************************************************/
+    function aiMove() {
+      if (winnerMessage.style.display !== 'none') return;
+      const { bestFrom, bestTo } = findAIMove();
+      if (bestFrom === null || bestTo === null) {
+        checkGameOver();
+        return;
+      }
+      movePiece(bestFrom, bestTo);
+      renderBoard();
+      const piece = boardState[bestTo];
+      let capturingMoves = getAllCapturesForPiece(bestTo, piece);
+      while (capturingMoves.length > 0 && didJustCapture(bestFrom, bestTo)) {
+        bestFrom = bestTo;
+        bestTo = capturingMoves[0];
+        movePiece(bestFrom, bestTo);
+        renderBoard();
+        capturingMoves = getAllCapturesForPiece(bestTo, piece);
+      }
+      if (!checkGameOver()) {
+        currentPlayer = 'red';
+        updateTurnIndicator();
+      }
+      saveGameState();
+    }
+
+    function findAIMove() {
+      let bestFrom = null;
+      let bestTo = null;
+      const whiteIndices = boardState
+        .map((p, i) => ({ piece: p, index: i }))
+        .filter(obj => obj.piece && getBaseColor(obj.piece) === 'white');
+      for (let i = 0; i < whiteIndices.length; i++) {
+        const { piece, index } = whiteIndices[i];
+        const captures = getAllCapturesForPiece(index, piece);
+        if (captures.length > 0) {
+          bestFrom = index;
+          bestTo = captures[0];
+          return { bestFrom, bestTo };
+        }
+      }
+      for (let i = 0; i < whiteIndices.length; i++) {
+        const { piece, index } = whiteIndices[i];
+        const moves = getAllNormalMovesForPiece(index, piece);
+        if (moves.length > 0) {
+          bestFrom = index;
+          bestTo = moves[0];
+          return { bestFrom, bestTo };
+        }
+      }
+      return { bestFrom: null, bestTo: null };
+    }
+
+    /***********************************************************
+     * Highlighting Helpers
+     ***********************************************************/
+    function highlightSquares(indices) {
+      indices.forEach(idx => {
+        const square = board.children[idx];
+        if (square) square.classList.add('highlight');
+      });
+    }
+
+    function clearHighlights() {
+      Array.from(board.children).forEach(sq => sq.classList.remove('highlight'));
+    }
+
+    /***********************************************************
+     * Start the Game
+     ***********************************************************/
+    init();
+    console.log('Advanced Checkers game initialized! Enjoy.');
+  </script>
+</body>
+</html>

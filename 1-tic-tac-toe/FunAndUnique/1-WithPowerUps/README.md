@@ -1,0 +1,1 @@
+Tic-Tac-Toe with Power-Ups – Add special moves like blocking a cell.

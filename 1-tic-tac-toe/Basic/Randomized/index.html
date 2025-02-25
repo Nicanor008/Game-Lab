@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Randomized Tic-Tac-Toe</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <h1>Randomized Tic-Tac-Toe</h1>
+        <p class="status">X's Turn (You)</p>
+
+        <div class="scoreboard">
+            <p>Player Wins: <span id="player-score">0</span></p>
+            <p>AI Wins: <span id="ai-score">0</span></p>
+            <p>Draws: <span id="draw-score">0</span></p>
+        </div>
+
+        <div class="board">
+            <div class="cell" data-index="0"></div>
+            <div class="cell" data-index="1"></div>
+            <div class="cell" data-index="2"></div>
+            <div class="cell" data-index="3"></div>
+            <div class="cell" data-index="4"></div>
+            <div class="cell" data-index="5"></div>
+            <div class="cell" data-index="6"></div>
+            <div class="cell" data-index="7"></div>
+            <div class="cell" data-index="8"></div>
+        </div>
+
+        <button class="restart-btn">Restart Game</button>
+        <button class="toggle-mode-btn">Game Mode: AI</button>
+    </div>
+
+    <audio id="move-sound" src="move.mp3"></audio>
+    <audio id="game-over-sound" src="game-over.mp3"></audio>
+
+    <script src="script.js"></script>
+</body>
+</html>

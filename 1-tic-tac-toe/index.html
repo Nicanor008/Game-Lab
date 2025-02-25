@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- SEO Enhancements -->
+    <title>Tic-Tac-Toe Online - Play Multiple Variants Free</title>
+    <meta name="description" content="Play Tic-Tac-Toe online with multiple variants: Basic, Misére, Randomized, Minimax AI, Multiplayer, Animated, and Battle Mode. Free, responsive, and fun!">
+    <meta name="keywords" content="tic-tac-toe, online game, free tic-tac-toe, minimax AI, multiplayer tic-tac-toe, animated tic-tac-toe, battle mode">
+    <meta name="author" content="Nicanor Korir">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://tic-tac-toe.games.nicanor.me">
+    <!-- Social Media Meta Tags (Open Graph) -->
+    <meta property="og:title" content="Tic-Tac-Toe Online - Play Multiple Variants Free">
+    <meta property="og:description" content="Enjoy Tic-Tac-Toe with exciting twists! Play against AI, friends, or in battle mode with neon-lit graphics. Free and fun for all!">
+    <meta property="og:image" content="./tic-tac-toe.jpg">
+    <meta property="og:image:alt" content="Tic Tac Toe real world image">
+    <meta property="og:url" content="https://tic-tac-toe.games.nicanor.me/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Tic-Tac-Toe Variants by Nicanor Korir">
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Tic-Tac-Toe Online - Play Multiple Variants Free">
+    <meta name="twitter:description" content="Enjoy Tic-Tac-Toe with exciting twists! Play against AI, friends, or in battle mode with neon-lit graphics. Free and fun for all!">
+    <meta name="twitter:image" content="./tic-tac-toe.jpg">
+    <meta name="twitter:image:alt" content="Tic Tac Toe real world image">
+    <!-- Performance: Preload critical CSS -->
+    <link rel="preload" href="#internal-css" as="style">
+    <style id="internal-css">
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            position: relative;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+            background-color: white;
+        }
+        .main-container-1 {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: url('./hero-bg.jpeg') no-repeat center center;
+            background-size: cover;
+            opacity: 0.75;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .games-list {
+            width: 200px;
+            padding: 10px;
+        }
+        .games-list button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            border: none;
+            background-color: #ddd;
+            transition: background-color 0.3s;
+        }
+        .games-list button:hover {
+            background-color: #ccc;
+        }
+        .game-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .metadata {
+            width: 200px;
+            padding: 10px;
+            text-align: center;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-gap: 5px;
+            margin: 20px auto;
+            max-width: 310px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            border: 1px solid #ccc;
+        }
+        .cell:hover {
+            background-color: #e0e0e0;
+        }
+        .cell.placed {
+            animation: place 0.5s ease;
+        }
+        @keyframes place {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+        .cell.win {
+            animation: win 1s infinite;
+        }
+        @keyframes win {
+            0% { background-color: #ffeb3b; }
+            50% { background-color: #ff9800; }
+            100% { background-color: #ffeb3b; }
+        }
+        .animate-adjacent {
+            animation: adjacent 0.5s ease;
+        }
+        @keyframes adjacent {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .animate-win-animated {
+            animation: spin 1s linear;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-board {
+            animation: pulse 1s ease;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .battle-board {
+            background-color: #333;
+        }
+        .battle-board .cell {
+            background-color: #555;
+            color: white;
+            border: 1px solid #777;
+        }
+        .battle-board .cell:hover {
+            background-color: #666;
+        }
+        .capture {
+            animation: capture 0.5s ease;
+        }
+        @keyframes capture {
+            0% { background-color: red; }
+            100% { background-color: #555; }
+        }
+        #restart, #toggle-opponent {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            margin: 5px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        #restart:hover, #toggle-opponent:hover {
+            background-color: #45a049;
+        }
+        .mobile-only {
+            display: none;
+            width: 100%;
+            padding: 10px;
+            font-size: 1em;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                align-items: center;
+                padding: 10px;
+            }
+            .games-list {
+                display: none;
+            }
+            .mobile-only {
+                display: block;
+            }
+            .game-container, .metadata {
+                width: 100%;
+            }
+            .board {
+                grid-template-columns: repeat(3, 80px);
+                max-width: 250px;
+            }
+            .cell {
+                width: 80px;
+                height: 80px;
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- SEO: Semantic HTML -->
+    <main class="main-container-1" role="main">
+        <div class="main-container">
+        <nav class="games-list" aria-label="Game Variants">
+            <button data-game="basic">Basic Tic-Tac-Toe</button>
+            <button data-game="misere">Misére Tic-Tac-Toe</button>
+            <button data-game="randomized">Randomized Tic-Tac-Toe</button>
+            <button data-game="minimax">Minimax Tic-Tac-Toe</button>
+            <button data-game="multiplayer">Multiplayer Tic-Tac-Toe</button>
+            <button data-game="animated">Animated Tic-Tac-Toe</button>
+            <button data-game="battle">Battle Mode Tic-Tac-Toe</button>
+        </nav>
+        <select id="game-select" class="mobile-only" aria-label="Select Game Variant">
+            <option value="basic">Basic Tic-Tac-Toe</option>
+            <option value="misere">Misére Tic-Tac-Toe</option>
+            <option value="randomized">Randomized Tic-Tac-Toe</option>
+            <option value="minimax">Minimax Tic-Tac-Toe</option>
+            <option value="multiplayer">Multiplayer Tic-Tac-Toe</option>
+            <option value="animated">Animated Tic-Tac-Toe</option>
+            <option value="battle">Battle Mode Tic-Tac-Toe</option>
+        </select>
+        <section class="game-container" aria-label="Current Game">
+            <h1 id="game-title"></h1>
+            <div class="board" role="grid">
+                <div class="cell" data-index="0" role="gridcell"></div>
+                <div class="cell" data-index="1" role="gridcell"></div>
+                <div class="cell" data-index="2" role="gridcell"></div>
+                <div class="cell" data-index="3" role="gridcell"></div>
+                <div class="cell" data-index="4" role="gridcell"></div>
+                <div class="cell" data-index="5" role="gridcell"></div>
+                <div class="cell" data-index="6" role="gridcell"></div>
+                <div class="cell" data-index="7" role="gridcell"></div>
+                <div class="cell" data-index="8" role="gridcell"></div>
+            </div>
+            <p id="current-player" aria-live="polite"></p>
+            <div>
+                <button id="restart" aria-label="Restart Game">Restart</button>
+                <button id="toggle-opponent" aria-label="Toggle Opponent Mode">Play with Computer</button>
+            </div>
+        </section>
+        <aside class="metadata" aria-label="Game Information">
+            <p id="win-counts"></p>
+            <p id="play-mode"></p>
+            <p id="tips"></p>
+        </aside>
+    </div>
+</main>
+    <script>
+        // Performance: Defer heavy initialization until DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            class Game {
+                constructor() {
+                    this.board = Array(9).fill(null);
+                    this.currentPlayer = 'X';
+                    this.winner = null;
+                    this.isGameOver = false;
+                    this.player1Wins = 0;
+                    this.player2Wins = 0;
+                }
+                makeMove(index) {
+                    if (this.isGameOver || this.board[index] !== null) return false;
+                    this.board[index] = this.currentPlayer;
+                    if (this.checkWin(this.currentPlayer)) {
+                        this.winner = this.currentPlayer;
+                        this.isGameOver = true;
+                        this.currentPlayer === 'X' ? this.player1Wins++ : this.player2Wins++;
+                    } else if (this.checkDraw()) {
+                        this.isGameOver = true;
+                    } else {
+                        this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+                    }
+                    return true;
+                }
+                checkWin(player, board = this.board) {
+                    const winCombos = [
+                        [0,1,2], [3,4,5], [6,7,8],
+                        [0,3,6], [1,4,7], [2,5,8],
+                        [0,4,8], [2,4,6]
+                    ];
+                    return winCombos.some(combo => combo.every(index => board[index] === player));
+                }
+                checkDraw(board = this.board) {
+                    return board.every(cell => cell !== null);
+                }
+                reset() {
+                    this.board = Array(9).fill(null);
+                    this.currentPlayer = 'X';
+                    this.winner = null;
+                    this.isGameOver = false;
+                }
+                getCurrentPlayer() {
+                    return this.currentPlayer;
+                }
+                computerMove() {
+                    const emptyIndices = this.board.map((val, index) => val === null ? index : null).filter(val => val !== null);
+                    if (emptyIndices.length > 0) {
+                        const randomIndex = emptyIndices[Math.floor(Math.random() * emptyIndices.length)];
+                        this.makeMove(randomIndex);
+                    }
+                }
+            }
+
+            class MisereGame extends Game {
+                makeMove(index) {
+                    if (this.isGameOver || this.board[index] !== null) return false;
+                    this.board[index] = this.currentPlayer;
+                    if (this.checkWin(this.currentPlayer)) {
+                        this.winner = this.currentPlayer === 'X' ? 'O' : 'X';
+                        this.isGameOver = true;
+                        this.winner === 'X' ? this.player1Wins++ : this.player2Wins++;
+                    } else if (this.checkDraw()) {
+                        this.isGameOver = true;
+                    } else {
+                        this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+                    }
+                    return true;
+                }
+            }
+
+            class RandomizedGame extends Game {
+                constructor() {
+                    super();
+                    this.preFillBoard();
+                }
+                preFillBoard() {
+                    const numPrefills = Math.floor(Math.random() * 3) + 1;
+                    const indices = [...Array(9).keys()];
+                    for (let i = 0; i < numPrefills; i++) {
+                        const index = indices.splice(Math.floor(Math.random() * indices.length), 1)[0];
+                        this.board[index] = Math.random() < 0.5 ? 'X' : 'O';
+                    }
+                }
+                reset() {
+                    super.reset();
+                    this.preFillBoard();
+                }
+            }
+
+            class MinimaxGame extends Game {
+                constructor() {
+                    super();
+                    this.aiPlayer = 'O';
+                    this.humanPlayer = 'X';
+                }
+                makeMove(index) {
+                    if (this.isGameOver || this.board[index] !== null) return false;
+                    this.board[index] = this.currentPlayer;
+                    if (this.checkWin(this.currentPlayer)) {
+                        this.winner = this.currentPlayer;
+                        this.isGameOver = true;
+                        this.currentPlayer === 'X' ? this.player1Wins++ : this.player2Wins++;
+                    } else if (this.checkDraw()) {
+                        this.isGameOver = true;
+                    } else {
+                        this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+                    }
+                    return true;
+                }
+                computerMove() {
+                    const bestMove = this.getBestMove();
+                    this.makeMove(bestMove);
+                }
+                getBestMove() {
+                    let bestScore = -Infinity;
+                    let bestMove;
+                    for (let i = 0; i < 9; i++) {
+                        if (this.board[i] === null) {
+                            let tempBoard = [...this.board];
+                            tempBoard[i] = this.aiPlayer;
+                            let score = this.minimax(tempBoard, false);
+                            if (score > bestScore) {
+                                bestScore = score;
+                                bestMove = i;
+                            }
+                        }
+                    }
+                    return bestMove;
+                }
+                minimax(board, isMaximizing) {
+                    if (this.checkWin(this.aiPlayer, board)) return 1;
+                    if (this.checkWin(this.humanPlayer, board)) return -1;
+                    if (this.checkDraw(board)) return 0;
+                    if (isMaximizing) {
+                        let bestScore = -Infinity;
+                        for (let i = 0; i < 9; i++) {
+                            if (board[i] === null) {
+                                let tempBoard = [...board];
+                                tempBoard[i] = this.aiPlayer;
+                                let score = this.minimax(tempBoard, false);
+                                bestScore = Math.max(bestScore, score);
+                            }
+                        }
+                        return bestScore;
+                    } else {
+                        let bestScore = Infinity;
+                        for (let i = 0; i < 9; i++) {
+                            if (board[i] === null) {
+                                let tempBoard = [...board];
+                                tempBoard[i] = this.humanPlayer;
+                                let score = this.minimax(tempBoard, true);
+                                bestScore = Math.min(bestScore, score);
+                            }
+                        }
+                        return bestScore;
+                    }
+                }
+            }
+
+            class AnimatedGame extends Game {}
+
+            class BattleModeGame extends Game {
+                makeMove(index) {
+                    if (this.isGameOver) return false;
+                    if (this.board[index] === null || this.board[index] !== this.currentPlayer) {
+                        this.board[index] = this.currentPlayer;
+                        if (this.checkWin(this.currentPlayer)) {
+                            this.winner = this.currentPlayer;
+                            this.isGameOver = true;
+                            this.currentPlayer === 'X' ? this.player1Wins++ : this.player2Wins++;
+                        } else if (this.checkDraw()) {
+                            this.isGameOver = true;
+                        } else {
+                            this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+                        }
+                        return true;
+                    }
+                    return false;
+                }
+                computerMove() {
+                    const possibleMoves = this.board.map((val, index) => (val === null || val !== this.currentPlayer) ? index : null).filter(val => val !== null);
+                    if (possibleMoves.length > 0) {
+                        const randomIndex = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+                        this.makeMove(randomIndex);
+                    }
+                }
+            }
+
+            const games = {
+                basic: new Game(),
+                misere: new MisereGame(),
+                randomized: new RandomizedGame(),
+                minimax: new MinimaxGame(),
+                multiplayer: new Game(),
+                animated: new AnimatedGame(),
+                battle: new BattleModeGame()
+            };
+
+            const tips = {
+                basic: ["Control the center", "Block your opponent", "Look for forks"],
+                misere: ["Avoid three in a row", "Force your opponent to win"],
+                randomized: ["Adapt to pre-filled board", "Plan around initial state"],
+                minimax: ["AI is unbeatable, aim for a draw", "Learn from AI moves"],
+                multiplayer: ["Play with a friend", "Plan your moves"],
+                animated: ["Enjoy the animations", "Same as basic rules"],
+                battle: ["Overwrite opponent marks", "Claim the board strategically"]
+            };
+
+            let currentGame = games.basic;
+            let isSinglePlayer = true;
+
+            const gameTitle = document.getElementById('game-title');
+            const board = document.querySelector('.board');
+            const cells = board.querySelectorAll('.cell');
+            const currentPlayerEl = document.getElementById('current-player');
+            const restartBtn = document.getElementById('restart');
+            const toggleOpponentBtn = document.getElementById('toggle-opponent');
+            const winCountsEl = document.getElementById('win-counts');
+            const playModeEl = document.getElementById('play-mode');
+            const tipsEl = document.getElementById('tips');
+
+            // Performance: Throttle render calls
+            let renderTimeout;
+            function render(lastMoveIndex = null) {
+                clearTimeout(renderTimeout);
+                renderTimeout = setTimeout(() => {
+                    gameTitle.textContent = currentGame.constructor.name.replace('Game', '') + ' Tic-Tac-Toe';
+                    cells.forEach((cell, index) => {
+                        cell.textContent = currentGame.board[index] || '';
+                        cell.classList.remove('x', 'o', 'win', 'animate-win-animated', 'animate-adjacent', 'capture');
+                        if (currentGame.board[index]) {
+                            cell.classList.add(currentGame.board[index].toLowerCase(), 'placed');
+                        }
+                    });
+                    currentPlayerEl.textContent = `Current Player: ${currentGame.getCurrentPlayer()}`;
+                    winCountsEl.textContent = `X Wins: ${currentGame.player1Wins} | O Wins: ${currentGame.player2Wins}`;
+                    playModeEl.textContent = isSinglePlayer ? 'Playing against Computer' : 'Two Players';
+                    const gameKey = Object.keys(games).find(key => games[key] === currentGame);
+                    const gameTips = tips[gameKey];
+                    tipsEl.textContent = gameTips[Math.floor(Math.random() * gameTips.length)];
+
+                    board.classList.remove('battle-board');
+                    if (currentGame instanceof BattleModeGame) {
+                        board.classList.add('battle-board');
+                    }
+
+                    if (currentGame.isGameOver) {
+                        if (currentGame.winner) {
+                            currentPlayerEl.textContent = `Player ${currentGame.winner} Wins!`;
+                            const winCombo = getWinCombo(currentGame.board, currentGame.winner);
+                            if (winCombo) {
+                                if (currentGame instanceof AnimatedGame) {
+                                    winCombo.forEach(index => cells[index].classList.add('animate-win-animated'));
+                                } else {
+                                    winCombo.forEach(index => cells[index].classList.add('win'));
+                                }
+                            }
+                        } else {
+                            currentPlayerEl.textContent = "Draw!";
+                        }
+                    }
+
+                    if (lastMoveIndex !== null && currentGame instanceof AnimatedGame && !currentGame.isGameOver) {
+                        const adjacentIndices = getAdjacentIndices(lastMoveIndex);
+                        adjacentIndices.forEach(idx => {
+                            if (currentGame.board[idx] === null) {
+                                cells[idx].classList.add('animate-adjacent');
+                                setTimeout(() => cells[idx].classList.remove('animate-adjacent'), 500);
+                            }
+                        });
+                    }
+                }, 10); // Throttle to 10ms
+            }
+
+            function getWinCombo(board, player) {
+                const winCombos = [
+                    [0,1,2], [3,4,5], [6,7,8],
+                    [0,3,6], [1,4,7], [2,5,8],
+                    [0,4,8], [2,4,6]
+                ];
+                return winCombos.find(combo => combo.every(index => board[index] === player));
+            }
+
+            function getAdjacentIndices(index) {
+                const row = Math.floor(index / 3);
+                const col = index % 3;
+                const adjacent = [];
+                if (row > 0) adjacent.push(index - 3);
+                if (row < 2) adjacent.push(index + 3);
+                if (col > 0) adjacent.push(index - 1);
+                if (col < 2) adjacent.push(index + 1);
+                return adjacent;
+            }
+
+            // Performance: Use event delegation for cells
+            board.addEventListener('click', (e) => {
+                const cell = e.target.closest('.cell');
+                if (!cell) return;
+                const index = parseInt(cell.dataset.index);
+                const movingPlayer = currentGame.currentPlayer;
+                const prevVal = currentGame.board[index];
+                if (currentGame.makeMove(index)) {
+                    render(index);
+                    if (prevVal !== null && prevVal !== movingPlayer && currentGame instanceof BattleModeGame) {
+                        cell.classList.add('capture');
+                        setTimeout(() => cell.classList.remove('capture'), 500);
+                    }
+                    if (currentGame.isGameOver && currentGame.winner && currentGame instanceof AnimatedGame) {
+                        setTimeout(() => {
+                            board.classList.add('animate-board');
+                            setTimeout(() => board.classList.remove('animate-board'), 1000);
+                        }, 2000);
+                    }
+                    if (isSinglePlayer && currentGame.currentPlayer === 'O' && !currentGame.isGameOver) {
+                        setTimeout(() => {
+                            currentGame.computerMove();
+                            render();
+                        }, 500);
+                    }
+                }
+            });
+
+            restartBtn.addEventListener('click', () => {
+                currentGame.reset();
+                render();
+            });
+
+            toggleOpponentBtn.addEventListener('click', () => {
+                isSinglePlayer = !isSinglePlayer;
+                toggleOpponentBtn.textContent = isSinglePlayer ? 'Play with Computer' : 'Play with Another Player';
+                render();
+            });
+
+            // Performance: Batch DOM updates for game list
+            const gameButtons = document.querySelectorAll('.games-list button');
+            gameButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const gameKey = button.dataset.game;
+                    currentGame = games[gameKey];
+                    currentGame.reset();
+                    render();
+                });
+            });
+
+            document.getElementById('game-select').addEventListener('change', (e) => {
+                const gameKey = e.target.value;
+                currentGame = games[gameKey];
+                currentGame.reset();
+                render();
+            });
+
+            render();
+        });
+    </script>
+</body>
+</html>

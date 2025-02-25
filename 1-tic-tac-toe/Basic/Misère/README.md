@@ -1,0 +1,1 @@
+Misère Tic-Tac-Toe – The player who completes a row loses instead of winning.

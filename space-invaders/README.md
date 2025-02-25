@@ -1,0 +1,1 @@
+ Shoot aliens while dodging their attacks.

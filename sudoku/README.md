@@ -1,0 +1,1 @@
+A number puzzle game where you fill in a 9x9 grid with numbers, following specific rules.

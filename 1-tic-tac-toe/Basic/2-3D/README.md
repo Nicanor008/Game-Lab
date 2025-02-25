@@ -1,0 +1,1 @@
+Instead of a 3×3 grid, use a 3×3×3 cube for more complexity.

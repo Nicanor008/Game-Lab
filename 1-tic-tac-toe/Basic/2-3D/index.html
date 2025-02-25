@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Tic-Tac-Toe</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+        #winnerMessage {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            display: none;
+        }
+        #turnMessage {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="winnerMessage"></div>
+    <div id="turnMessage">Current Player: X</div>
+
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/controls/OrbitControls.js"></script> -->
+    <script>
+        let scene, camera, renderer, controls;
+        let currentPlayer = 'X';
+        let gameBoard = Array(3).fill().map(() => Array(3).fill().map(() => Array(3).fill(null))); // 3x3x3 empty grid
+        let cubes = [];
+        let winnerMessage = document.getElementById('winnerMessage');
+        let turnMessage = document.getElementById('turnMessage');
+        let isGameOver = false;
+
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Set the background color
+            scene.background = new THREE.Color(0xeeeeee); // Light gray background
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            camera.position.set(0, 0, 5);
+
+            // Add light to the scene
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(5, 5, 5);
+            scene.add(light);
+
+            // Create a 2D grid for Tic-Tac-Toe (3x3)
+            createGrid();
+
+            // Add a click event to select cells
+            window.addEventListener('click', onMouseClick, false);
+
+            animate();
+        }
+
+        function createGrid() {
+            const size = 1.5;
+            const offset = size / 2;
+
+            for (let y = 0; y < 3; y++) {
+                for (let x = 0; x < 3; x++) {
+                    const geometry = new THREE.BoxGeometry(size, size, size);
+                    const material = new THREE.MeshBasicMaterial({ color: 0xcccccc, wireframe: true });
+                    const cube = new THREE.Mesh(geometry, material);
+                    cube.position.set(x - offset, y - offset, 0); // Flattened on the Z-axis
+                    cubes.push(cube);
+                    scene.add(cube);
+                }
+            }
+        }
+
+        function onMouseClick(event) {
+            if (isGameOver) return; // Prevent clicks after the game ends
+
+            const mouse = new THREE.Vector2();
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            const raycaster = new THREE.Raycaster();
+            raycaster.updateMatrixWorld();
+
+            // Raycast to detect the clicked cube
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(cubes);
+
+            if (intersects.length > 0) {
+                const selectedCube = intersects[0].object;
+                const pos = selectedCube.position;
+                const x = Math.round(pos.x + 1.5);
+                const y = Math.round(pos.y + 1.5);
+
+                // Check if the cell is empty
+                if (!gameBoard[y][x]) {
+                    gameBoard[y][x] = currentPlayer;
+                    selectedCube.material.color.set(currentPlayer === 'X' ? 0xff0000 : 0x0000ff);
+
+                    // Check for a win after every move
+                    if (checkForWin()) {
+                        winnerMessage.innerText = `${currentPlayer} Wins!`;
+                        winnerMessage.style.display = 'block';
+                        isGameOver = true;
+                    } else {
+                        // Switch player and update turn message
+                        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                        turnMessage.innerText = `Current Player: ${currentPlayer}`;
+                    }
+                }
+            }
+        }
+
+        function checkForWin() {
+            // Check rows and columns
+            for (let y = 0; y < 3; y++) {
+                if (gameBoard[y][0] && gameBoard[y][0] === gameBoard[y][1] && gameBoard[y][1] === gameBoard[y][2]) return true;
+                if (gameBoard[0][y] && gameBoard[0][y] === gameBoard[1][y] && gameBoard[1][y] === gameBoard[2][y]) return true;
+            }
+
+            // Check diagonals
+            if (gameBoard[0][0] && gameBoard[0][0] === gameBoard[1][1] && gameBoard[1][1] === gameBoard[2][2]) return true;
+            if (gameBoard[0][2] && gameBoard[0][2] === gameBoard[1][1] && gameBoard[1][1] === gameBoard[2][0]) return true;
+
+            return false;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        init();
+    </script>
+</body>
+</html>

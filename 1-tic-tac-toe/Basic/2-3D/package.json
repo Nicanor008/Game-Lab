@@ -1,0 +1,13 @@
+{
+    "name": "3d-tic-tac",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build"
+    },
+    "dependencies": {
+        "three": "^0.173.0"
+    },
+    "devDependencies": {
+        "vite": "^6.1.1"
+    }
+}

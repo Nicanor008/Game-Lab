@@ -1,0 +1,1 @@
+Tic-Tac-Toe Battle Mode – Players attack each other's marks to claim the board.
