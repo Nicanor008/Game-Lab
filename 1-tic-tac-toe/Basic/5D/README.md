@@ -1,0 +1,1 @@
+5-in-a-row (Gomoku) – Play on a larger grid (like 15×15) and win with 5 in a row.

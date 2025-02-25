@@ -1,0 +1,1 @@
+Place towers on a path to stop enemies from reaching the end.

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breakout - Classic Brick Breaker Game</title>
+    <meta name="description" content="Play the classic Breakout game! Control the paddle with touch or keys, break all bricks, and aim for the high score!">
+    <meta name="keywords" content="breakout, brick breaker, game, html5, javascript, mobile">
+    <meta name="author" content="Nicanor Korir">
+    <meta name="robots" content="index, follow">
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="Breakout - Classic Brick Breaker Game">
+    <meta property="og:description" content="Play the classic Breakout game! Control the paddle with touch or keys, break all bricks, and aim for the high score!">
+    <meta property="og:image" content="./brick.jpg">
+    <meta property="og:url" content="https://brick-breakout.nicanor.me">
+    <meta property="og:type" content="website">
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Breakout - Classic Brick Breaker Game">
+    <meta name="twitter:description" content="Play the classic Breakout game! Control the paddle with touch or keys, break all bricks, and aim for the high score!">
+    <meta name="twitter:image" content="./brick.jpg">
+    <!-- Performance: Preload critical CSS -->
+    <link rel="preload" href="#internal-css" as="style">
+    <style id="internal-css">
+        body {
+            background-image: url('./hero-bg.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+        #test {
+            background-color: rgb(40, 40, 40);
+            opacity: 0.8;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #test2 {
+            background-color: white;
+            overflow: auto;
+            touch-action: none;
+        }
+        #controls {
+            background-color: rgb(36, 123, 2);
+            padding: 10px 4px;
+            color: white;
+            font-weight: 700;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        canvas {
+            border: 1px solid black;
+            background-color: white;
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="test">
+        <div id="test2">
+        <div id="controls">
+            <label for="canvasWidth">Width: </label>
+            <input type="number" id="canvasWidth" value="800" min="200" max="2000" step="10">
+            <label for="canvasHeight">Height: </label>
+            <input type="number" id="canvasHeight" value="600" min="200" max="2000" step="10">
+            <button onclick="updateCanvasSize()">Update Size</button>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+
+        <script>
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            const widthInput = document.getElementById('canvasWidth');
+            const heightInput = document.getElementById('canvasHeight');
+
+            // Default dimensions
+            let BASE_WIDTH = 800;
+            let BASE_HEIGHT = 600;
+
+            // Game state variables
+            let gameState = 'start';
+            let score = 0;
+            let lives = 3;
+            let level = 1;
+            let highScore = localStorage.getItem('highScore') || 0;
+            let speedMultiplier = 1;
+            let paddleWidth = 100;
+
+            // Scaling variables
+            let dpr = window.devicePixelRatio || 1;
+
+            // Initial canvas setup
+            function setCanvasSize(width, height) {
+                BASE_WIDTH = width;
+                BASE_HEIGHT = height;
+
+                canvas.style.width = `${width}px`;
+                canvas.style.height = `${height}px`;
+                canvas.width = width * dpr;
+                canvas.height = height * dpr;
+                ctx.scale(dpr, dpr); // Scale for DPR only, not game logic
+            }
+            setCanvasSize(BASE_WIDTH, BASE_HEIGHT);
+
+            // Update canvas size from user input
+            function updateCanvasSize() {
+                const newWidth = parseInt(widthInput.value, 10);
+                const newHeight = parseInt(heightInput.value, 10);
+                if (newWidth >= 200 && newWidth <= 2000 && newHeight >= 200 && newHeight <= 2000) {
+                    setCanvasSize(newWidth, newHeight);
+                    // Reset game objects to fit new dimensions
+                    paddle = new Paddle();
+                    balls = gameState === 'playing' ? [new Ball()] : [];
+                    if (gameState === 'playing') createLevel();
+                } else {
+                    alert('Width and Height must be between 200 and 2000.');
+                }
+            }
+
+            // Game objects
+            class Paddle {
+                constructor() {
+                    this.width = paddleWidth;
+                    this.height = 20;
+                    this.x = BASE_WIDTH / 2 - this.width / 2;
+                    this.y = BASE_HEIGHT - 50;
+                    this.speed = 10;
+                    this.movingLeft = false;
+                    this.movingRight = false;
+                }
+                draw() {
+                    ctx.fillStyle = 'blue';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
+                update() {
+                    if (this.movingLeft && this.x > 0) this.x -= this.speed;
+                    if (this.movingRight && this.x + this.width < BASE_WIDTH) this.x += this.speed;
+                }
+            }
+
+            class Ball {
+                constructor() {
+                    this.radius = 10;
+                    this.x = BASE_WIDTH / 2;
+                    this.y = BASE_HEIGHT / 2;
+                    this.vx = 5;
+                    this.vy = -5;
+                }
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'red';
+                    ctx.fill();
+                    ctx.closePath();
+                }
+                update() {
+                    this.x += this.vx * speedMultiplier;
+                    this.y += this.vy * speedMultiplier;
+                    if (this.x - this.radius < 0 || this.x + this.radius > BASE_WIDTH) this.vx = -this.vx;
+                    if (this.y - this.radius < 0) this.vy = -this.vy;
+                    if (this.y + this.radius > BASE_HEIGHT) return true; // Ball lost
+                    return false;
+                }
+            }
+
+            class Brick {
+                constructor(x, y, hits = 1) {
+                    this.x = x;
+                    this.y = y;
+                    this.width = 80;
+                    this.height = 20;
+                    this.hits = hits;
+                    this.status = true;
+                }
+                draw() {
+                    if (this.status) {
+                        ctx.fillStyle = this.hits > 1 ? 'purple' : 'green';
+                        ctx.fillRect(this.x, this.y, this.width, this.height);
+                    }
+                }
+                hit() {
+                    this.hits--;
+                    score += 10;
+                    if (this.hits <= 0) {
+                        this.status = false;
+                        if (Math.random() < 0.2) spawnPowerUp(this.x + this.width / 2, this.y);
+                    }
+                }
+            }
+
+            class PowerUp {
+                constructor(x, y, type) {
+                    this.x = x;
+                    this.y = y;
+                    this.width = 20;
+                    this.height = 20;
+                    this.type = type;
+                    this.speed = 2;
+                }
+                draw() {
+                    ctx.fillStyle = this.type === 'large_paddle' ? 'yellow' :
+                                    this.type === 'fast_ball' ? 'purple' :
+                                    this.type === 'multi_ball' ? 'orange' : 'pink';
+                    ctx.fillRect(this.x, this.y, this.width, this.height);
+                }
+                update() {
+                    this.y += this.speed;
+                    if (this.y > BASE_HEIGHT) return true; // Off screen
+                    return false;
+                }
+            }
+
+            // Game collections
+            let paddle = new Paddle();
+            let balls = [];
+            let bricks = [];
+            let powerUps = [];
+
+            // Levels layout
+            const levels = [
+                () => {
+                    const cols = Math.floor(BASE_WIDTH / 90);
+                    const rows = Math.min(5, Math.floor(BASE_HEIGHT / 100));
+                    for (let i = 0; i < rows; i++) {
+                        for (let j = 0; j < cols; j++) {
+                            bricks.push(new Brick(j * 90 + 10, i * 30 + 50));
+                        }
+                    }
+                },
+                () => {
+                    const cols = Math.floor(BASE_WIDTH / 90);
+                    const rows = Math.min(5, Math.floor(BASE_HEIGHT / 100));
+                    for (let i = 0; i < rows; i++) {
+                        for (let j = 0; j < cols; j++) {
+                            bricks.push(new Brick(j * 90 + 10, i * 30 + 50, (i % 2 === 0) ? 2 : 1));
+                        }
+                    }
+                }
+            ];
+
+            // Input handling
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') paddle.movingLeft = true;
+                else if (e.key === 'ArrowRight') paddle.movingRight = true;
+                if (e.key === ' ' && (gameState === 'start' || gameState === 'gameover')) startGame();
+            });
+            document.addEventListener('keyup', (e) => {
+                if (e.key === 'ArrowLeft') paddle.movingLeft = false;
+                else if (e.key === 'ArrowRight') paddle.movingRight = false;
+            });
+            document.addEventListener('mousemove', (e) => {
+                let rect = canvas.getBoundingClientRect();
+                let mouseX = (e.clientX - rect.left) * (BASE_WIDTH / rect.width);
+                paddle.x = mouseX - paddle.width / 2;
+                if (paddle.x < 0) paddle.x = 0;
+                if (paddle.x + paddle.width > BASE_WIDTH) paddle.x = BASE_WIDTH - paddle.width;
+            });
+            document.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                let rect = canvas.getBoundingClientRect();
+                let touchX = (e.touches[0].clientX - rect.left) * (BASE_WIDTH / rect.width);
+                paddle.x = touchX - paddle.width / 2;
+                if (paddle.x < 0) paddle.x = 0;
+                if (paddle.x + paddle.width > BASE_WIDTH) paddle.x = BASE_WIDTH - paddle.width;
+            }, { passive: false });
+
+            function startGame() {
+                gameState = 'playing';
+                score = 0;
+                lives = 3;
+                level = 1;
+                paddle = new Paddle();
+                balls = [new Ball()];
+                bricks = [];
+                powerUps = [];
+                speedMultiplier = 1;
+                paddleWidth = 100;
+                paddle.width = paddleWidth;
+                createLevel();
+            }
+
+            function createLevel() {
+                bricks = [];
+                if (level - 1 < levels.length) levels[level - 1]();
+                else {
+                    gameState = 'gameover';
+                    alert('You won! All levels completed!');
+                }
+            }
+
+            function spawnPowerUp(x, y) {
+                const types = ['large_paddle', 'fast_ball', 'multi_ball', 'extra_life'];
+                const type = types[Math.floor(Math.random() * types.length)];
+                powerUps.push(new PowerUp(x, y, type));
+            }
+
+            function activatePowerUp(type) {
+                if (type === 'large_paddle') {
+                    paddleWidth = 150;
+                    paddle.width = paddleWidth;
+                    setTimeout(() => {
+                        paddleWidth = 100;
+                        paddle.width = paddleWidth;
+                    }, 10000);
+                } else if (type === 'fast_ball') {
+                    speedMultiplier = 1.5;
+                    setTimeout(() => speedMultiplier = 1, 10000);
+                } else if (type === 'multi_ball') {
+                    balls.push(new Ball());
+                } else if (type === 'extra_life') {
+                    lives++;
+                }
+            }
+
+            function gameLoop() {
+                ctx.clearRect(0, 0, BASE_WIDTH, BASE_HEIGHT);
+
+                // Dynamic font scaling based on canvas size
+                const baseFontSize = 20 * (BASE_WIDTH / 800); // Scale relative to default 800 width
+                const titleFontSize = 30 * (BASE_WIDTH / 800);
+
+                if (gameState === 'start') {
+                    ctx.fillStyle = 'black';
+                    ctx.font = `${titleFontSize}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Breakout Game', BASE_WIDTH / 2, BASE_HEIGHT / 2 - 50);
+                    ctx.font = `${baseFontSize}px Arial`;
+                    ctx.fillText('Use touch or arrow keys to move paddle', BASE_WIDTH / 2, BASE_HEIGHT / 2);
+                    ctx.fillText('Press Space or tap to start', BASE_WIDTH / 2, BASE_HEIGHT / 2 + 30);
+                } else if (gameState === 'playing') {
+                    paddle.update();
+                    balls.forEach((ball, index) => {
+                        if (ball.update()) {
+                            balls.splice(index, 1);
+                            if (balls.length === 0) {
+                                lives--;
+                                if (lives > 0) balls.push(new Ball());
+                                else gameState = 'gameover';
+                            }
+                        }
+                        if (ball.y + ball.radius > paddle.y && ball.y - ball.radius < paddle.y + paddle.height &&
+                            ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+                            ball.vy = -ball.vy;
+                            ball.vx += (ball.x - (paddle.x + paddle.width / 2)) * 0.1;
+                        }
+                        bricks.forEach(brick => {
+                            if (brick.status && ball.y - ball.radius < brick.y + brick.height &&
+                                ball.y + ball.radius > brick.y && ball.x > brick.x && ball.x < brick.x + brick.width) {
+                                brick.hit();
+                                ball.vy = -ball.vy;
+                            }
+                        });
+                    });
+                    powerUps.forEach((powerUp, index) => {
+                        if (powerUp.update()) powerUps.splice(index, 1);
+                        else if (powerUp.y + powerUp.height > paddle.y && powerUp.y < paddle.y + paddle.height &&
+                                powerUp.x + powerUp.width > paddle.x && powerUp.x < paddle.x + paddle.width) {
+                            activatePowerUp(powerUp.type);
+                            powerUps.splice(index, 1);
+                        }
+                    });
+
+                    if (bricks.every(brick => !brick.status)) {
+                        level++;
+                        createLevel();
+                        balls = [new Ball()];
+                        paddle = new Paddle();
+                    }
+
+                    paddle.draw();
+                    balls.forEach(ball => ball.draw());
+                    bricks.forEach(brick => brick.draw());
+                    powerUps.forEach(powerUp => powerUp.draw());
+
+                    ctx.fillStyle = 'black';
+                    ctx.font = `${baseFontSize}px Arial`;
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`Score: ${score}`, 10, 30);
+                    ctx.fillText(`Lives: ${lives}`, BASE_WIDTH - 100, 30);
+                    ctx.fillText(`Level: ${level}`, BASE_WIDTH / 2 - 50, 30);
+                } else if (gameState === 'gameover') {
+                    if (score > highScore) {
+                        highScore = score;
+                        localStorage.setItem('highScore', highScore);
+                    }
+                    ctx.fillStyle = 'black';
+                    ctx.font = `${titleFontSize}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Game Over', BASE_WIDTH / 2, BASE_HEIGHT / 2 - 50);
+                    ctx.font = `${baseFontSize}px Arial`;
+                    ctx.fillText(`Score: ${score}`, BASE_WIDTH / 2, BASE_HEIGHT / 2);
+                    ctx.fillText(`High Score: ${highScore}`, BASE_WIDTH / 2, BASE_HEIGHT / 2 + 30);
+                    ctx.fillText('Press Space or tap to restart', BASE_WIDTH / 2, BASE_HEIGHT / 2 + 60);
+                }
+
+                requestAnimationFrame(gameLoop);
+            }
+
+            // Tap to start on mobile
+            canvas.addEventListener('touchstart', () => {
+                if (gameState === 'start' || gameState === 'gameover') startGame();
+            });
+
+            gameLoop();
+        </script>
+    </div>
+</div>
+</body>
+</html>
